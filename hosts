@@ -1,6 +1,25 @@
 all:
-  hosts:
-    elk
-  vars:
-    ansible_become: yes
-    linux_user: AzureUser
+  children:
+    linux_boxes:
+      children:
+        docker_boxes:
+          hosts:
+            elk:
+            zabbix:
+        elk_boxes:
+          hosts:
+            elk:
+        zabbix_boxes:
+          hosts:
+            zabbix:
+      vars:
+        linux_user: AzureUser
+    windows_servers:
+      hosts:
+        server:
+      vars:
+        ansible_user: AzureUser
+        ansible_password: ServerPassword1@
+        ansible_connection: winrm
+        ansible_winrm_transport: basic
+        ansible_winrm_server_cert_validation: ignore

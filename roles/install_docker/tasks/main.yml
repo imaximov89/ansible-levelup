@@ -1,0 +1,48 @@
+---
+# tasks file for install_docker
+- name: Install packages
+  apt:
+    name: git, apt-transport-https, ca-certificates, curl, gnupg-agent, software-properties-common
+    state: present
+    update_cache: yes
+  become: yes
+
+- name: Add Docker’s official GPG key
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+  become: yes      
+
+- name: Set up the stable repository for Docker
+  apt_repository:
+    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable
+    state: present
+  become: yes      
+
+- name: Install Docker
+  apt:
+    name: docker-ce,docker-ce-cli,containerd.io
+    state: present
+    update_cache: yes  
+  become: yes        
+
+- name: Add linux_user to docker group
+  user: 
+    name: "{{linux_user}}"
+    groups: docker
+    append: yes
+  become: yes
+    
+- name: Download the current stable release of Docker Compose
+  uri:
+    url: https://github.com/docker/compose/releases/download/1.26.0/docker-compose-linux-x86_64
+    dest: /usr/local/bin/docker-compose
+    creates: /usr/local/bin/docker-compose
+  become: yes
+  
+- name: Apply executable permissions to the binary
+  shell: sudo chmod +x /usr/local/bin/docker-compose
+  become: yes
+
+- name: Reset ssh connection to allow user changes to affect 'current login user'
+  meta: reset_connection  

@@ -1,0 +1,54 @@
+---
+# tasks file for install_winzabbix
+- name: Create Download folder
+  win_file:
+    path: C:\Downloads
+    state: directory
+
+- name: Add Firewall rule for port 10050
+  win_firewall_rule:
+    name: Zabbix client
+    localport: 10050
+    action: allow
+    direction: in
+    protocol: tcp
+    state: present
+    enabled: yes
+
+- name: Check if Zabbix service is installed
+  win_service:
+    name: "Zabbix Agent"
+  register: zabbix_service_info  
+
+- name: Download Zabbix
+  win_get_url:
+    url: "https://www.zabbix.com/downloads/5.0.1/zabbix_agent-5.0.1-windows-amd64.zip"
+    dest: C:\Downloads
+  when: zabbix_service_info.exists == false
+
+- name: Unzip Zabbix
+  win_unzip:
+      dest: "C:\\Program Files\\Zabbix"
+      src: "C:\\Downloads\\zabbix_agent-5.0.1-windows-amd64.zip"
+      delete_archive: yes
+  when: zabbix_service_info.exists == false
+
+- name: Copy zabbix_agentd.conf
+  win_copy:
+      src: files/zabbix_agentd.conf
+      dest: C:\Program Files\Zabbix\conf\zabbix_agentd.conf
+      force: yes
+  register: zabbix_config_changed 
+  
+- name: Register Zabbix service
+  win_command: zabbix_agentd.exe --config "C:\Program Files\Zabbix\conf\zabbix_agentd.conf" --install
+  args:
+    chdir: C:\Program Files\Zabbix\bin
+  when: zabbix_service_info.exists == false
+  
+- name: Restart Zabbix Service
+  win_service:
+    name: "zabbix agent"
+    start_mode: auto
+    state: restarted   
+  when: zabbix_config_changed.changed == true  

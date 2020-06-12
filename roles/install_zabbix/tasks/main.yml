@@ -1,0 +1,9 @@
+---
+# tasks file for install_zabbix
+- name: Download zabbix project from GIT
+  git:
+    repo: "https://github.com/zabbix/zabbix-docker.git"
+    dest: "/home/{{linux_user}}/zabbix-docker" 
+    
+- name: Start Zabbix Containers
+  shell: "cd /home/{{linux_user}}/zabbix-docker && docker-compose -f ./docker-compose_v3_alpine_mysql_latest.yaml up -d"      

@@ -1,0 +1,56 @@
+---
+# tasks file for install_winfilebeat
+- name: Create Download folder
+  win_file:
+    path: C:\Downloads
+    state: directory
+
+- name: Check if Filebeat service is installed
+  win_service:
+    name: Filebeat
+  register: filebeat_service_info
+
+- name: Download Filebeat
+  win_get_url:
+    url: "https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-oss-7.7.1-windows-x86_64.zip"
+    dest: C:\Downloads
+  when: filebeat_service_info.exists == false
+
+- name: Unzip Filebeat
+  win_unzip:
+      dest: "C:\\Program Files"
+      src: "C:\\Downloads\\filebeat-oss-7.7.1-windows-x86_64.zip"
+      delete_archive: yes 
+  when: filebeat_service_info.exists == false          
+
+- name: Rename Filebeat folder
+  win_shell: Rename-Item "C:\\Program Files\\filebeat-7.7.1-windows-x86_64" Filebeat
+  args:
+      creates: "C:\\Program Files\\Filebeat"
+  when: filebeat_service_info.exists == false        
+
+- name: Install Filebeat Service
+  win_shell: .\install-service-filebeat.ps1
+  args:
+    chdir: C:\Program Files\Filebeat
+  when: filebeat_service_info.exists == false   
+
+- name: Enable IIS module in Filebeat
+  win_command: filebeat.exe modules enable iis
+  args:
+    chdir: C:\Program Files\Filebeat
+    creates: C:\Program Files\Filebeat\modules.d\iis.yml
+
+- name: Copy Filebeat.yml
+  win_copy:
+      src: files/filebeat.yml
+      dest: C:\Program Files\Filebeat\filebeat.yml
+      force: yes
+  register: filebeat_config_changed
+
+- name: Restart Filebeat Service
+  win_service:
+    name: filebeat
+    start_mode: auto
+    state: restarted   
+  when: filebeat_config_changed.changed == true

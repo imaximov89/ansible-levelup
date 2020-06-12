@@ -1,0 +1,9 @@
+---
+# tasks file for install_elk
+- name: Download ELK project from GIT
+  git:
+    repo: "https://github.com/deviantony/docker-elk.git"
+    dest: "/home/{{linux_user}}/docker-elk"
+
+- name: Start ELK Containers
+  shell: "cd /home/{{linux_user}}/docker-elk && docker-compose up -d"

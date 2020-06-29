@@ -2,10 +2,6 @@ all:
   children:
     linux_boxes:
       children:
-        docker_boxes:
-          hosts:
-            elk:
-            zabbix:
         elk_boxes:
           hosts:
             elk:

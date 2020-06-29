@@ -1,23 +1,17 @@
 ---
-- hosts: docker_boxes
-  roles: 
-    - role: install_docker
-
 - hosts: elk_boxes
   roles: 
+    - role: install_docker
     - role: install_elk
 
 - hosts: zabbix_boxes
   roles:
+    - role: install_docker
     - role: install_zabbix
-
 
 - hosts: windows_servers
   roles:
     - role: install_winiis
     - role: install_winfilebeat  
     - role: install_winlogbeat 
-    - role: install_winzabbix 
-
-
-
+    - role: install_winzabbix
